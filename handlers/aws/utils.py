@@ -12,7 +12,15 @@ from elasticapm import Client
 from elasticapm import get_client as get_apm_client
 from elasticapm.contrib.serverless.aws import capture_serverless as apm_capture_serverless  # noqa: F401
 
-from share import Input, Output, json_dumper, json_parser, shared_logger
+from share import (
+    Input,
+    Output,
+    input_has_output_type_telemetry,
+    json_dumper,
+    json_parser,
+    lambda_ended_telemetry,
+    shared_logger,
+)
 from shippers import CompositeShipper, ProtocolShipper, ShipperFactory
 from storage import ProtocolStorage, StorageFactory
 
@@ -94,6 +102,8 @@ def wrap_try_except(
 
             shared_logger.exception("exception raised", exc_info=e)
 
+            lambda_ended_telemetry(exception_raised=True)
+
             raise e
 
         # NOTE: any generic exception is logged and suppressed to prevent the entire Lambda function to fail.
@@ -104,6 +114,8 @@ def wrap_try_except(
                 apm_client.capture_exception()
 
             shared_logger.exception("exception raised", exc_info=e)
+
+            lambda_ended_telemetry(exception_ignored=True)
 
             return f"exception raised: {e.__repr__()}"
 
@@ -155,6 +167,8 @@ def get_shipper_from_input(
     integration_scope: str = event_input.discover_integration_scope(lambda_event=lambda_event, at_record=at_record)
 
     for output_type in event_input.get_output_types():
+        input_has_output_type_telemetry(input_arn=event_input.id, output_type=output_type)
+
         if output_type == "elasticsearch":
             shared_logger.info("setting ElasticSearch shipper")
             output: Optional[Output] = event_input.get_output_by_type("elasticsearch")
