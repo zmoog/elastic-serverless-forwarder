@@ -3,6 +3,7 @@
 # you may not use this file except in compliance with the Elastic License 2.0.
 import hashlib
 import os
+from dataclasses import dataclass
 from typing import Any, Callable, Optional
 
 import boto3
@@ -18,8 +19,9 @@ from share import (
     input_has_output_type_telemetry,
     json_dumper,
     json_parser,
-    lambda_ended_telemetry,
+    function_ended_telemetry,
     shared_logger,
+    FunctionContext,
 )
 from shippers import CompositeShipper, ProtocolShipper, ShipperFactory
 from storage import ProtocolStorage, StorageFactory
@@ -102,7 +104,7 @@ def wrap_try_except(
 
             shared_logger.exception("exception raised", exc_info=e)
 
-            lambda_ended_telemetry(exception_raised=True)
+            function_ended_telemetry(exception_raised=True)
 
             raise e
 
@@ -115,7 +117,7 @@ def wrap_try_except(
 
             shared_logger.exception("exception raised", exc_info=e)
 
-            lambda_ended_telemetry(exception_ignored=True)
+            function_ended_telemetry(exception_ignored=True)
 
             return f"exception raised: {e.__repr__()}"
 
@@ -167,7 +169,11 @@ def get_shipper_from_input(
     integration_scope: str = event_input.discover_integration_scope(lambda_event=lambda_event, at_record=at_record)
 
     for output_type in event_input.get_output_types():
-        input_has_output_type_telemetry(input_arn=event_input.id, output_type=output_type)
+        anonymized_arn = anonymize_arn(event_input.id)
+        input_has_output_type_telemetry(
+            input_id=anonymized_arn.id,
+            output_type=output_type,
+            )
 
         if output_type == "elasticsearch":
             shared_logger.info("setting ElasticSearch shipper")
@@ -524,3 +530,38 @@ def expand_event_list_from_field_resolver(integration_scope: str, field_to_expan
 
 def _get_hex_prefix(src: str) -> str:
     return hashlib.sha3_384(src.encode("UTF8")).hexdigest()
+
+    
+@dataclass
+class ARN(object):
+    """The Amazon Resource Name (ARN) of an AWS resource."""
+    id: str
+    service: str
+    region: str
+    account_id: str
+
+
+def anonymize_arn(arn: str) -> ARN:
+    """Anonymize an ARN by hashing the account ID and the resource ID."""
+    arn_components = arn.split(":")
+
+    hashed_arn = hashlib.sha256(arn.encode("utf-8")).hexdigest()[:10]
+    service = arn_components[2]
+    region = arn_components[3]
+    account_id = hashlib.sha256(arn_components[4].encode("utf-8")).hexdigest()[:10]
+
+    return ARN(hashed_arn, service, region, account_id)
+
+
+def build_function_context(lambda_context: context_.Context) -> FunctionContext:
+    """Create a FunctionContext from a Lambda context."""
+    anonymized_arn = anonymize_arn(lambda_context.invoked_function_arn)
+
+    return FunctionContext(
+        anonymized_arn.id,
+        lambda_context.function_version,
+        lambda_context.aws_request_id,
+        anonymized_arn.region,
+        "aws",
+        lambda_context.memory_limit_in_mb,
+    )
