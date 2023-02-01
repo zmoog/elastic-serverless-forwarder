@@ -11,11 +11,11 @@ from .logger import logger as shared_logger
 from .multiline import CollectBuffer, CountMultiline, PatternMultiline, ProtocolMultiline, WhileMultiline
 from .secretsmanager import aws_sm_expander
 from .telemetry import (
+    FunctionContext,
     events_forwarded_telemetry,
-    input_has_output_type_telemetry,
-    input_processed_telemetry,
     function_ended_telemetry,
     function_started_telemetry,
+    input_has_output_type_telemetry,
+    input_processed_telemetry,
     output_events_sent_to_replay_telemetry,
-    FunctionContext,
 )

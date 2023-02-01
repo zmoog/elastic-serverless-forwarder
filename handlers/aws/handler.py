@@ -10,10 +10,10 @@ from aws_lambda_typing import context as context_
 from share import (
     ExpandEventListFromField,
     events_forwarded_telemetry,
-    input_processed_telemetry,
-    json_parser,
     function_ended_telemetry,
     function_started_telemetry,
+    input_processed_telemetry,
+    json_parser,
     parse_config,
     shared_logger,
 )
@@ -33,6 +33,8 @@ from .utils import (
     CONFIG_FROM_PAYLOAD,
     ConfigFileException,
     TriggerTypeException,
+    anonymize_arn,
+    build_function_context,
     capture_serverless,
     config_yaml_from_payload,
     config_yaml_from_s3,
@@ -45,8 +47,6 @@ from .utils import (
     get_sqs_client,
     get_trigger_type_and_config_source,
     wrap_try_except,
-    anonymize_arn,
-    build_function_context,
 )
 
 _completion_grace_period: int = 120000
@@ -160,7 +160,7 @@ def lambda_handler(lambda_event: dict[str, Any], lambda_context: context_.Contex
 
                 return "completed"
 
-        anonymized_arn, = anonymize_arn(event_input.id)
+        anonymized_arn = anonymize_arn(event_input.id)
         input_processed_telemetry(input_id=anonymized_arn.id)
 
         composite_shipper = get_shipper_from_input(
@@ -207,9 +207,7 @@ def lambda_handler(lambda_event: dict[str, Any], lambda_context: context_.Contex
                     },
                 )
 
-                events_forwarded_telemetry(
-                    sent_events=sent_events, empty_events=empty_events, skipped_events=skipped_events
-                )
+                events_forwarded_telemetry(sent=sent_events, empty=empty_events, skipped=skipped_events)
 
                 composite_shipper.flush()
 
@@ -244,7 +242,7 @@ def lambda_handler(lambda_event: dict[str, Any], lambda_context: context_.Contex
 
             return "completed"
 
-        anonymized_arn, = anonymize_arn(event_input.id)
+        anonymized_arn = anonymize_arn(event_input.id)
         input_processed_telemetry(input_id=anonymized_arn.id)
 
         composite_shipper = get_shipper_from_input(
@@ -291,9 +289,7 @@ def lambda_handler(lambda_event: dict[str, Any], lambda_context: context_.Contex
                     },
                 )
 
-                events_forwarded_telemetry(
-                    sent_events=sent_events, empty_events=empty_events, skipped_events=skipped_events
-                )
+                events_forwarded_telemetry(sent=sent_events, empty=empty_events, skipped=skipped_events)
 
                 composite_shipper.flush()
 
@@ -360,9 +356,7 @@ def lambda_handler(lambda_event: dict[str, Any], lambda_context: context_.Contex
                 },
             )
 
-            events_forwarded_telemetry(
-                sent=sent_events, empty=empty_events, skipped=skipped_events
-            )
+            events_forwarded_telemetry(sent=sent_events, empty=empty_events, skipped=skipped_events)
 
             for timeout_current_sqs_record, timeout_sqs_record in enumerate(remaining_sqs_records):
                 if timeout_current_sqs_record > 0:

@@ -14,14 +14,14 @@ from elasticapm import get_client as get_apm_client
 from elasticapm.contrib.serverless.aws import capture_serverless as apm_capture_serverless  # noqa: F401
 
 from share import (
+    FunctionContext,
     Input,
     Output,
+    function_ended_telemetry,
     input_has_output_type_telemetry,
     json_dumper,
     json_parser,
-    function_ended_telemetry,
     shared_logger,
-    FunctionContext,
 )
 from shippers import CompositeShipper, ProtocolShipper, ShipperFactory
 from storage import ProtocolStorage, StorageFactory
@@ -173,7 +173,7 @@ def get_shipper_from_input(
         input_has_output_type_telemetry(
             input_id=anonymized_arn.id,
             output_type=output_type,
-            )
+        )
 
         if output_type == "elasticsearch":
             shared_logger.info("setting ElasticSearch shipper")
@@ -535,6 +535,7 @@ def _get_hex_prefix(src: str) -> str:
 @dataclass
 class ARN(object):
     """The Amazon Resource Name (ARN) of an AWS resource."""
+
     id: str
     service: str
     region: str
