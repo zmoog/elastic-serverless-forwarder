@@ -11,6 +11,7 @@ from .logger import logger as shared_logger
 from .multiline import CollectBuffer, CountMultiline, PatternMultiline, ProtocolMultiline, WhileMultiline
 from .secretsmanager import aws_sm_expander
 from .telemetry import (
+    config_loaded_telemetry,
     FunctionContext,
     # events_forwarded_telemetry,
     # function_ended_telemetry,

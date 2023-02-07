@@ -363,6 +363,14 @@ class Config:
     def __init__(self) -> None:
         self._inputs: dict[str, Input] = {}
 
+    @property
+    def inputs(self) -> dict[str, Input]:
+        """
+        Inputs getter.
+        Returns all inputs
+        """
+        return self._inputs
+
     def get_input_by_id(self, input_id: str) -> Optional[Input]:
         """
         Input getter.

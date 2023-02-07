@@ -8,6 +8,7 @@ from typing import Any, Callable, Optional
 from aws_lambda_typing import context as context_
 
 from share import (
+    config_loaded_telemetry,
     ExpandEventListFromField,
     # events_forwarded_telemetry,
     # function_ended_telemetry,
@@ -89,6 +90,8 @@ def lambda_handler(lambda_event: dict[str, Any], lambda_context: context_.Contex
 
     assert config is not None
 
+    config_loaded_telemetry(config)
+
     sqs_client = get_sqs_client()
 
     if trigger_type == "replay-sqs":
@@ -156,7 +159,7 @@ def lambda_handler(lambda_event: dict[str, Any], lambda_context: context_.Contex
             if event_input is None:
                 shared_logger.warning("no input defined", extra={"input_type": trigger_type, "input_id": input_id})
 
-                function_ended_telemetry()
+                # function_ended_telemetry()
 
                 return "completed"
 
