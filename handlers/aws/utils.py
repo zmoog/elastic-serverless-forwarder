@@ -13,11 +13,10 @@ from elasticapm import Client
 from elasticapm import get_client as get_apm_client
 from elasticapm.contrib.serverless.aws import capture_serverless as apm_capture_serverless  # noqa: F401
 
-from share import (
+from share import (  # function_ended_telemetry,
     FunctionContext,
     Input,
     Output,
-    # function_ended_telemetry,
     input_has_output_type_telemetry,
     json_dumper,
     json_parser,
@@ -532,7 +531,7 @@ def expand_event_list_from_field_resolver(integration_scope: str, field_to_expan
 def _get_hex_prefix(src: str) -> str:
     return hashlib.sha3_384(src.encode("UTF8")).hexdigest()
 
-    
+
 @dataclass
 class ARN(object):
     """The Amazon Resource Name (ARN) of an AWS resource."""

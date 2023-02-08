@@ -7,13 +7,10 @@ from typing import Any, Callable, Optional
 
 from aws_lambda_typing import context as context_
 
-from share import (
-    config_loaded_telemetry,
+from share import (  # events_forwarded_telemetry,; function_ended_telemetry,; input_processed_telemetry,
     ExpandEventListFromField,
-    # events_forwarded_telemetry,
-    # function_ended_telemetry,
+    config_loaded_telemetry,
     function_started_telemetry,
-    # input_processed_telemetry,
     json_parser,
     parse_config,
     shared_logger,
@@ -34,7 +31,6 @@ from .utils import (
     CONFIG_FROM_PAYLOAD,
     ConfigFileException,
     TriggerTypeException,
-    anonymize_arn,
     build_function_context,
     capture_serverless,
     config_yaml_from_payload,
@@ -415,10 +411,10 @@ def lambda_handler(lambda_event: dict[str, Any], lambda_context: context_.Contex
 
             continuing_original_input_type = get_continuing_original_input_type(sqs_record)
 
-            is_continuing = False
+            # is_continuing = False
             input_id = sqs_record["eventSourceARN"]
             if "messageAttributes" in sqs_record and "originalEventSourceARN" in sqs_record["messageAttributes"]:
-                is_continuing = True
+                # is_continuing = True
                 input_id = sqs_record["messageAttributes"]["originalEventSourceARN"]["stringValue"]
 
             event_input = config.get_input_by_id(input_id)
@@ -506,7 +502,7 @@ def lambda_handler(lambda_event: dict[str, Any], lambda_context: context_.Contex
                             timeout_config_yaml=config_yaml,
                         )
 
-                        function_ended_telemetry(to_be_continued=True)
+                        # function_ended_telemetry(to_be_continued=True)
 
                         return "continuing"
 
