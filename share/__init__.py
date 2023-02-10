@@ -10,9 +10,8 @@ from .json import json_dumper, json_parser
 from .logger import logger as shared_logger
 from .multiline import CollectBuffer, CountMultiline, PatternMultiline, ProtocolMultiline, WhileMultiline
 from .secretsmanager import aws_sm_expander
-from .telemetry import (
+from .telemetry import (  # config_loaded_telemetry,; input_has_output_type_telemetry,; input_processed_telemetry,
     FunctionContext,
-    config_loaded_telemetry,
     function_started_telemetry,
-    input_has_output_type_telemetry,
+    input_selected_telemetry,
 )

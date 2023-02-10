@@ -7,10 +7,10 @@ from typing import Any, Callable, Optional
 
 from aws_lambda_typing import context as context_
 
-from share import (  # events_forwarded_telemetry,; function_ended_telemetry,; input_processed_telemetry,
+from share import (
     ExpandEventListFromField,
-    config_loaded_telemetry,
     function_started_telemetry,
+    input_selected_telemetry,
     json_parser,
     parse_config,
     shared_logger,
@@ -86,7 +86,7 @@ def lambda_handler(lambda_event: dict[str, Any], lambda_context: context_.Contex
 
     assert config is not None
 
-    config_loaded_telemetry(config)
+    # config_loaded_telemetry(config)
 
     sqs_client = get_sqs_client()
 
@@ -161,6 +161,7 @@ def lambda_handler(lambda_event: dict[str, Any], lambda_context: context_.Contex
 
         # anonymized_arn = anonymize_arn(event_input.id)
         # input_processed_telemetry(input_id=anonymized_arn.id)
+        input_selected_telemetry(event_input)
 
         composite_shipper = get_shipper_from_input(
             event_input=event_input, lambda_event=lambda_event, at_record=0, config_yaml=config_yaml
@@ -243,6 +244,7 @@ def lambda_handler(lambda_event: dict[str, Any], lambda_context: context_.Contex
 
         # anonymized_arn = anonymize_arn(event_input.id)
         # input_processed_telemetry(input_id=anonymized_arn.id)
+        input_selected_telemetry(event_input)
 
         composite_shipper = get_shipper_from_input(
             event_input=event_input, lambda_event=lambda_event, at_record=0, config_yaml=config_yaml
@@ -424,6 +426,7 @@ def lambda_handler(lambda_event: dict[str, Any], lambda_context: context_.Contex
 
             # anonymized_arn = anonymize_arn(event_input.id)
             # input_processed_telemetry(input_id=anonymized_arn.id, is_continuing=is_continuing)
+            input_selected_telemetry(event_input)
 
             if input_id in composite_shipper_cache:
                 composite_shipper = composite_shipper_cache[input_id]

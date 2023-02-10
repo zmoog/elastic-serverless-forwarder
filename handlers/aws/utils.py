@@ -13,11 +13,10 @@ from elasticapm import Client
 from elasticapm import get_client as get_apm_client
 from elasticapm.contrib.serverless.aws import capture_serverless as apm_capture_serverless  # noqa: F401
 
-from share import (  # function_ended_telemetry,
+from share import (  # function_ended_telemetry,; input_has_output_type_telemetry,
     FunctionContext,
     Input,
     Output,
-    input_has_output_type_telemetry,
     json_dumper,
     json_parser,
     shared_logger,
@@ -168,12 +167,12 @@ def get_shipper_from_input(
     integration_scope: str = event_input.discover_integration_scope(lambda_event=lambda_event, at_record=at_record)
 
     for output_type in event_input.get_output_types():
-        anonymized_arn = anonymize_arn(event_input.id)
-        input_has_output_type_telemetry(
-            input_id=anonymized_arn.id,
-            input_type=event_input.type,
-            output_type=output_type,
-        )
+        # anonymized_arn = anonymize_arn(event_input.id)
+        # input_has_output_type_telemetry(
+        #     input_id=anonymized_arn.id,
+        #     input_type=event_input.type,
+        #     output_type=output_type,
+        # )
 
         if output_type == "elasticsearch":
             shared_logger.info("setting ElasticSearch shipper")
