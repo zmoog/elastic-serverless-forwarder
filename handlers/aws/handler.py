@@ -86,8 +86,6 @@ def lambda_handler(lambda_event: dict[str, Any], lambda_context: context_.Contex
 
     assert config is not None
 
-    # config_loaded_telemetry(config)
-
     sqs_client = get_sqs_client()
 
     if trigger_type == "replay-sqs":
@@ -155,12 +153,8 @@ def lambda_handler(lambda_event: dict[str, Any], lambda_context: context_.Contex
             if event_input is None:
                 shared_logger.warning("no input defined", extra={"input_type": trigger_type, "input_id": input_id})
 
-                # function_ended_telemetry()
-
                 return "completed"
 
-        # anonymized_arn = anonymize_arn(event_input.id)
-        # input_processed_telemetry(input_id=anonymized_arn.id)
         input_selected_telemetry(event_input)
 
         composite_shipper = get_shipper_from_input(
@@ -207,8 +201,6 @@ def lambda_handler(lambda_event: dict[str, Any], lambda_context: context_.Contex
                     },
                 )
 
-                # events_forwarded_telemetry(sent=sent_events, empty=empty_events, skipped=skipped_events)
-
                 composite_shipper.flush()
 
                 _handle_cloudwatch_logs_continuation(
@@ -221,8 +213,6 @@ def lambda_handler(lambda_event: dict[str, Any], lambda_context: context_.Contex
                     event_input_id=input_id,
                     config_yaml=config_yaml,
                 )
-
-                # function_ended_telemetry(to_be_continued=True)
 
                 return "continuing"
 
@@ -238,12 +228,8 @@ def lambda_handler(lambda_event: dict[str, Any], lambda_context: context_.Contex
         if event_input is None:
             shared_logger.warning("no input defined", extra={"input_id": input_id})
 
-            # function_ended_telemetry()
-
             return "completed"
 
-        # anonymized_arn = anonymize_arn(event_input.id)
-        # input_processed_telemetry(input_id=anonymized_arn.id)
         input_selected_telemetry(event_input)
 
         composite_shipper = get_shipper_from_input(
@@ -290,8 +276,6 @@ def lambda_handler(lambda_event: dict[str, Any], lambda_context: context_.Contex
                     },
                 )
 
-                # events_forwarded_telemetry(sent=sent_events, empty=empty_events, skipped=skipped_events)
-
                 composite_shipper.flush()
 
                 remaining_kinesis_records = lambda_event["Records"][current_kinesis_record_n:]
@@ -311,8 +295,6 @@ def lambda_handler(lambda_event: dict[str, Any], lambda_context: context_.Contex
                         event_input_id=input_id,
                         config_yaml=config_yaml,
                     )
-
-                # function_ended_telemetry(to_be_continued=True)
 
                 return "continuing"
 
@@ -356,8 +338,6 @@ def lambda_handler(lambda_event: dict[str, Any], lambda_context: context_.Contex
                     "skipped_events": timeout_skipped_events,
                 },
             )
-
-            # events_forwarded_telemetry(sent=sent_events, empty=empty_events, skipped=skipped_events)
 
             for timeout_current_sqs_record, timeout_sqs_record in enumerate(remaining_sqs_records):
                 if timeout_current_sqs_record > 0:
@@ -413,10 +393,8 @@ def lambda_handler(lambda_event: dict[str, Any], lambda_context: context_.Contex
 
             continuing_original_input_type = get_continuing_original_input_type(sqs_record)
 
-            # is_continuing = False
             input_id = sqs_record["eventSourceARN"]
             if "messageAttributes" in sqs_record and "originalEventSourceARN" in sqs_record["messageAttributes"]:
-                # is_continuing = True
                 input_id = sqs_record["messageAttributes"]["originalEventSourceARN"]["stringValue"]
 
             event_input = config.get_input_by_id(input_id)
@@ -424,8 +402,6 @@ def lambda_handler(lambda_event: dict[str, Any], lambda_context: context_.Contex
                 shared_logger.warning("no input defined", extra={"input_id": input_id})
                 continue
 
-            # anonymized_arn = anonymize_arn(event_input.id)
-            # input_processed_telemetry(input_id=anonymized_arn.id, is_continuing=is_continuing)
             input_selected_telemetry(event_input)
 
             if input_id in composite_shipper_cache:
@@ -505,8 +481,6 @@ def lambda_handler(lambda_event: dict[str, Any], lambda_context: context_.Contex
                             timeout_config_yaml=config_yaml,
                         )
 
-                        # function_ended_telemetry(to_be_continued=True)
-
                         return "continuing"
 
             elif event_input.type == "s3-sqs":
@@ -543,8 +517,6 @@ def lambda_handler(lambda_event: dict[str, Any], lambda_context: context_.Contex
                             timeout_current_s3_record=current_s3_record,
                         )
 
-                        # function_ended_telemetry(to_be_continued=True)
-
                         return "continuing"
 
         for composite_shipper in composite_shipper_cache.values():
@@ -555,11 +527,7 @@ def lambda_handler(lambda_event: dict[str, Any], lambda_context: context_.Contex
             extra={"sent_events": sent_events, "empty_events": empty_events, "skipped_events": skipped_events},
         )
 
-        # events_forwarded_telemetry(sent=sent_events, empty=empty_events, skipped=skipped_events)
-
         assert last_sqs_record is not None
         delete_sqs_record(last_sqs_record["eventSourceARN"], last_sqs_record["receiptHandle"])
-
-    # function_ended_telemetry()
 
     return "completed"
