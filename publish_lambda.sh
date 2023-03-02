@@ -100,6 +100,8 @@ Resources:
           Variables:
               SQS_CONTINUE_URL: !Ref ElasticServerlessForwarderContinuingQueue
               SQS_REPLAY_URL: !Ref ElasticServerlessForwarderReplayQueue
+              TELEMETRY_ENABLED: true
+              TELEMETRY_ENDPOINT: "https://telemetry.elastic.co/v3/send/esf"
       Events:
         SQSContinuingEvent:
           Type: SQS
@@ -408,6 +410,18 @@ def create_vpc_config(publish_config: dict[str, Any]):
 
     return vpc_config_fragment
 
+def create_environment_variables(publish_config: dict[str, Any]):
+    environment_vars = {}
+
+    if "telemetry" in publish_config:
+        if "enabled" in publish_config["telemetry"]:
+            environment_vars["TELEMETRY_ENABLED"] = publish_config["telemetry"]["enabled"]
+
+        if "endpoint" in publish_config["telemetry"]:
+            environment_vars["TELEMETRY_ENDPOINT"] = publish_config["telemetry"]["endpoint"]
+
+    return environment_vars
+
 
 if __name__ == "__main__":
     publish_config_path = sys.argv[1]
@@ -435,6 +449,12 @@ if __name__ == "__main__":
         cloudformation_yaml["Resources"]["ApplicationElasticServerlessForwarder"]["Properties"][
             "VpcConfig"
         ] = vpc_config
+
+    environment_variables = create_environment_variables(publish_config_yaml)
+    for var in environment_variables:
+        cloudformation_yaml["Resources"]["ApplicationElasticServerlessForwarder"]["Properties"]["Environment"][
+            "Variables"
+        ][var] = environment_variables[var]
 
     created_events = create_events(publish_config_yaml)
     for created_event in created_events:
