@@ -238,6 +238,8 @@ Resources:
             return environment_vars
 
         def handler(event, context):
+            print("event", event)
+            print("context", context)
             vpc_config = create_vpc_config(event)
             if vpc_config:
                 event["fragment"]["ApplicationElasticServerlessForwarder"]["Properties"]["VpcConfig"] = vpc_config
