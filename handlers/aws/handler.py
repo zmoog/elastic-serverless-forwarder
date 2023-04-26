@@ -60,6 +60,7 @@ def lambda_handler(lambda_event: dict[str, Any], lambda_context: context_.Contex
     Parses the config and acts as front controller for inputs
     """
 
+    # change to trigger a deploy
     shared_logger.debug("lambda triggered", extra={"invoked_function_arn": lambda_context.invoked_function_arn})
 
     function_started_telemetry(ctx=build_function_context(lambda_context))
